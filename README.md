@@ -1,8 +1,8 @@
-# ts-static-webapp-template
+# Dapp Dir
 
-A minimum template for building a static web app with TypeScript.
+A small application to list and pin dapps on your local IPFS node.
 
-Check the [demo here](http://yanhaixiang.com/static-webapp-typescript-template/)!
+Available at [dappdir.eth](https://dappdir.eth.limo/).
 
 ## How to use
 
@@ -16,6 +16,6 @@ npm run start
 # Build a production package
 npm run build
 
-# Deploy the web app to your github (you may wanna change this)
+# Deploy the web app to IPFS
 npm run deploy
 ```

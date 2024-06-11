@@ -1,0 +1,135 @@
+body {
+    background: #f0f4f8;
+    font-family: Arial, sans-serif;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #4a90e2;
+    font-size: 2.5em;
+    margin-bottom: 20px;
+}
+
+#inputForm {
+  text-align: center;
+  width: 80%;
+  margin: 0 auto;
+  max-width: 600px;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    background-color: #ffffff;
+}
+
+#inputForm input {
+    padding: 15px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    margin-right: 10px;
+    flex: 1;
+    font-size: 16px;
+}
+
+#inputForm button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #4a90e2;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#inputForm button:hover {
+    background-color: #357ab8;
+}
+
+#dapps {
+    border-radius: 8px;
+    padding: 15px;
+    display: table;
+    background-color: #ffffff;
+    margin: 20px auto; /* Center the table and add more margin for better spacing */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15); /* Enhanced shadow for a more professional look */
+}
+
+#dapps .table-row {
+    display: table-row;
+}
+
+#dapps .table-row .table__item {
+    display: table-cell;
+    padding: 15px 35px; /* Slightly increased padding for a more spacious layout */
+    border: 1px solid #ccc; /* Consistent border color */
+    text-align: center; /* Center text horizontally */
+    vertical-align: middle; /* Center text vertically */
+    color: #333; /* Maintain dark text color for contrast */
+}
+
+#dapps .table-row .header__item {
+    display: table-cell;
+    padding: 15px; /* Uniform padding with table__item */
+    border: 1px solid #ccc; /* Consistent border color */
+    border-bottom: 2px solid #ccc; /* Emphasize header with a thicker bottom border */
+    text-align: left; /* Align text to the left */
+    font-weight: bold;
+    color: #333; /* Dark text for readability */
+}
+
+#install {
+    margin: 20px;
+    padding: 20px;
+    background-color: #e0e7ff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: none;
+}
+
+.step-header {
+    margin: 20px 0;
+}
+
+.code-block {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-top: 10px;
+    font-family: monospace;
+}
+
+.command-line {
+    display: flex;
+    align-items: center;
+}
+
+.prompt {
+    margin-right: 10px;
+    color: #555;
+    font-family: monospace;
+}
+
+.command {
+    flex: 1;
+    font-family: monospace;
+    color: #000;
+}
+
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: red;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 0.5s;
+}

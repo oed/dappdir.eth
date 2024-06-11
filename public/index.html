@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dapp Dir</title>
+</head>
+<body>
+<h1>Dapp Dir</h1>
+
+<div id="install">
+  <p>To use Dapp Dir application, you need to run IPFS Desktop locally. </p>
+  <div class="step-header"> 1. To install IPFS Desktop, please visit <a href="https://docs.ipfs.tech/install/ipfs-desktop/" target="_blank">IPFS Desktop Installation Guide</a>. </div>
+
+  <div class="step-header">2. Make sure your IPFS API configured to allow <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS" target="_blank">cross-origin (CORS) requests</a> by running the following commands:</div>
+  <div class="step">
+    <div class="code-block">
+      <div class="command-line">
+        <div class="prompt">$</div>
+        <div class="command">ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["https://dappdir.eth.limo/", "http://dappdir.eth.ipns.localhost:8080/"]'</div>
+      </div>
+      <div class="command-line">
+        <div class="prompt">$</div>
+        <div class="command">ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-header"> 3. Restart IPFS </div>
+</div>
+
+<div id="inputForm">
+  <input type="text" id="textInput" placeholder="Enter .eth domain" onkeypress="if(event.key === 'Enter') document.getElementById('submitButton').click()">
+  <button id="submitButton">Add to list</button>
+</div>
+
+<div id="dapps">
+    <div class="table-row">
+      <div class="header__item">URL</div>
+      <div class="header__item">Site Root</div>
+      <div class="header__item">Pinned</div>
+    </div>
+    <!-- Dynamic content will be appended here -->
+</div>
+</body>
+</html>

@@ -83652,5 +83652,21 @@
         "timestamp": 1718460310
       }
     ]
+  },
+  "uxbrad.eth": {
+    "versions": [
+      {
+        "cid": "bafybeibzsq3oumts7g5vlow5swp3qaaem2yopkzntg72xx4fkrqdcpkxei",
+        "timestamp": 1718488084
+      }
+    ]
+  },
+  "nftworld.eth": {
+    "versions": [
+      {
+        "cid": "bafybeid6jbpzvroicbcvzifqc6pshonzylr5q6dvjzejy4cp322l2rm544",
+        "timestamp": 1718488084
+      }
+    ]
   }
 }

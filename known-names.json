@@ -40503,7 +40503,7 @@
         "reports": [
           {
             "version": 1,
-            "timestamp": 1718487726,
+            "timestamp": 1718575393,
             "totalSize": 1112706,
             "distributionPurity": {
               "externalScripts": [],
@@ -40539,7 +40539,8 @@
                 "offenders": [
                   {
                     "service": "ipfs",
-                    "url": "http://127.0.0.1:5001/api/v0"
+                    "url": "http://127.0.0.1:5001/api/v0",
+                    "risk": "none"
                   }
                 ]
               }
@@ -56125,7 +56126,7 @@
         "reports": [
           {
             "version": 1,
-            "timestamp": 1718487775,
+            "timestamp": 1718575284,
             "totalSize": 20492385,
             "distributionPurity": {
               "externalScripts": [
@@ -56545,7 +56546,8 @@
                 "offenders": [
                   {
                     "service": "ethereum",
-                    "url": "window.ethereum"
+                    "url": "window.ethereum",
+                    "risk": "none"
                   }
                 ]
               },
@@ -56554,7 +56556,8 @@
                 "offenders": [
                   {
                     "service": "ethereum",
-                    "url": "window.ethereum"
+                    "url": "window.ethereum",
+                    "risk": "none"
                   }
                 ]
               },
@@ -56563,7 +56566,8 @@
                 "offenders": [
                   {
                     "service": "ethereum",
-                    "url": "window.ethereum"
+                    "url": "window.ethereum",
+                    "risk": "none"
                   }
                 ]
               },
@@ -56572,11 +56576,13 @@
                 "offenders": [
                   {
                     "service": "ethereum",
-                    "url": "http://127.0.0.1:8545"
+                    "url": "http://127.0.0.1:8545",
+                    "risk": "none"
                   },
                   {
                     "service": "ethereum",
-                    "url": "window.ethereum"
+                    "url": "window.ethereum",
+                    "risk": "none"
                   }
                 ]
               },
@@ -56585,7 +56591,8 @@
                 "offenders": [
                   {
                     "service": "ethereum",
-                    "url": "http://localhost:8545"
+                    "url": "http://localhost:8545",
+                    "risk": "none"
                   }
                 ]
               }
@@ -78027,7 +78034,7 @@
         "reports": [
           {
             "version": 1,
-            "timestamp": 1718487765,
+            "timestamp": 1718575265,
             "totalSize": 77067579,
             "distributionPurity": {
               "externalScripts": [],

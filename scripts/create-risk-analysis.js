@@ -1,8 +1,8 @@
-const ALLOWED_HTTP_APIs = [
-    { url: 'http://localhost:5001', service: 'ipfs' },
-    { url: 'http://127.0.0.1:5001', service: 'ipfs' },
-    { url: 'http://localhost:8545', service: 'ethereum' },
-    { url: 'http://127.0.0.1:8545', service: 'ethereum' },
+const WEB3_APIs = [
+    { url: 'http://localhost:5001', service: 'ipfs', risk: 'none' },
+    { url: 'http://127.0.0.1:5001', service: 'ipfs', risk: 'none' },
+    { url: 'http://localhost:8545', service: 'ethereum', risk: 'none' },
+    { url: 'http://127.0.0.1:8545', service: 'ethereum', risk: 'none' },
 ]
 const ANALYSIS_VERSION = 1
 
@@ -17,10 +17,10 @@ async function getRootCID(ensName) {
     throw new Error(`ENS name ${ensName} not found in known-names.json`);
 }
 
-async function saveReport(report) {
+async function saveReport(ensName, report) {
     const fs = await import('fs');
     const path = await import('path');
-    const { ensName, rootCID } = report;
+    const { rootCID } = report;
     delete report.ensName;
     delete report.rootCID;
     const knownNamesFilePath = path.join(__dirname, '../known-names.json');
@@ -64,7 +64,8 @@ async function getFilesFromCID(kubo, cid, result = [], pathCarry = '') {
 
 async function analyzeFile(kubo, cid, filePath) {
     console.log('analyzing', filePath)
-    if (!['html', 'htm', 'js'].some(ext => filePath.endsWith(ext))) {
+    const fileType = filePath.split('.').pop();
+    if (!['html', 'htm', 'js', 'svg'].some(ext => fileType === ext)) {
         // console.log(`Skipping non-target file type: ${filePath}`);
         return {};
     }
@@ -111,9 +112,9 @@ function analyzeNetworkingPurity(scriptContents) {
         while ((match = httpResourceRegex.exec(content)) !== null) {
             // ignore w3.org svg
             const url = match[0];
-            const service = ALLOWED_HTTP_APIs.find(api => url.includes(api.url))?.service;
+            const { service, risk } = WEB3_APIs.find(api => url.includes(api.url)) || {};
             if (service) {
-                analysis.web3.push({ service, url });
+                analysis.web3.push({ service, url, risk });
             } else if (!url.includes('w3.org') && !url.includes('svg')) {
                 analysis.http.push(url);
             }
@@ -131,7 +132,7 @@ function analyzeNetworkingPurity(scriptContents) {
 
         // // find Ethereum usage
         if (ethereumRegex.test(content)) {
-            analysis.web3.push({ service: 'ethereum', url: 'window.ethereum' });
+            analysis.web3.push({ service: 'ethereum', url: 'window.ethereum', risk: 'none' });
         }
     })
     return analysis;
@@ -162,16 +163,14 @@ function analyzeDistributionPurity(fileContent) {
     return analysis;
 }
 
-async function generateReport(ensName) {
+async function generateReport(rootCID) {
     const { create } = await import('kubo-rpc-client');
     const kubo = create({ url: 'http://localhost:5001' });
     try {
-        const rootCID = await getRootCID(ensName);
         const files = await getFilesFromCID(kubo, rootCID);
 
         const report = {
             version: ANALYSIS_VERSION,
-            ensName,
             rootCID,
             timestamp: Math.floor(Date.now() / 1000),
             totalSize: 0,
@@ -199,8 +198,6 @@ async function generateReport(ensName) {
             addToReportIfNotEmpty(report.web3, analysis.networkingPurity?.web3, file.path);
         }
 
-        // console.log(JSON.stringify(report, null, 2));
-
         console.log(`Total size: ${ (report.totalSize / 1024 / 1024).toFixed(2) } MB`);
         return report;
     } catch (error) {
@@ -218,13 +215,30 @@ async function generateReport(ensName) {
 
 
 async function main() {
-    const ensName = process.argv[2];
-    if (!ensName) {
-        console.error('Please provide an ENS name as a parameter.');
+    const input = process.argv[2];
+    if (!input) {
+        console.error('Please provide an ENS name or CID as a parameter.');
         process.exit(1);
+    } 
+    let rootCID;
+    let ensName = input.endsWith('.eth') ? input : undefined;
+    if (ensName) {
+        console.log(`Analyzing ${ensName}`);
+        rootCID = await getRootCID(ensName);
+    } else {
+        rootCID = input;
     }
-    const report = await generateReport(ensName);
-    await saveReport(report);
+
+    console.log(`Analyzing ${rootCID}`);
+    const report = await generateReport(rootCID);
+
+    if (ensName && process.argv.includes('--save')) {
+        console.log(`Saving report for ${ensName}`);
+        await saveReport(ensName, report);
+    } else {
+        console.log('Report:')
+        console.log(JSON.stringify(report, null, 2));
+    }
 }
 
 main();

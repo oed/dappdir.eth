@@ -7,6 +7,7 @@
     "start": "webpack serve --open --config webpack.dev.js --port 3000",
     "build": "webpack --config webpack.prod.js",
     "deploy": "ipfs add -r --cid-version=1 --pin=true ./dist",
+    "analyze": "node scripts/create-risk-analysis.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {

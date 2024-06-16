@@ -50,7 +50,7 @@ async function checkIfPinned(ipfsAddress: CID): Promise<boolean> {
     }
 }
 async function togglePin(ipfsAddress: CID, statusElement: HTMLElement): Promise<void> {
-    const isCurrentlyPinned = statusElement.textContent === 'Yes';
+    const isCurrentlyPinned = statusElement.textContent === '✅';
     try {
         if (isCurrentlyPinned) {
             await kubo.pin.rm(ipfsAddress.toString());
@@ -60,7 +60,7 @@ async function togglePin(ipfsAddress: CID, statusElement: HTMLElement): Promise<
             console.log(`Successfully pinned address: ${ipfsAddress}`);
         }
         // Update the status element to reflect the new pinning status after toggling
-        statusElement.textContent = !isCurrentlyPinned ? 'Yes' : 'No';
+        statusElement.textContent = !isCurrentlyPinned ? '✅' : '❌';
     } catch (error) {
         console.error(`Error toggling pin on IPFS address: ${ipfsAddress}`, error);
         statusElement.textContent = 'Error';
@@ -150,16 +150,27 @@ function renderResultDiv(ensName: string, siteRoot: CID, pinnedStatus: boolean):
     siteRootLink.target = '_blank';
     siteRootDiv.appendChild(siteRootLink);
 
+
+    const pinnedStatusDiv = document.createElement('span');
+    pinnedStatusDiv.textContent = pinnedStatus ? '✅' : '❌';
+    pinnedStatusDiv.style.width = '70%';
+    pinnedStatusDiv.style.textAlign = 'center'; // Center the text content
+
     const pinnedDiv = document.createElement('div');
     pinnedDiv.className = 'table__item';
-    const pinnedStatusDiv = document.createElement('div');
-    pinnedStatusDiv.textContent = pinnedStatus ? 'Yes' : 'No';
-    // Add a button to pin the resolved address
-    const toggleButton = document.createElement('button');
-    toggleButton.textContent = 'Toggle';
-    toggleButton.onclick = () => togglePin(siteRoot, pinnedStatusDiv);
+    pinnedDiv.style.transition = 'background-color 0.3s'; // Smooth transition for background color change
+    pinnedDiv.onmouseover = () => { 
+        pinnedDiv.style.backgroundColor = '#f0f0f0'; 
+        pinnedDiv.style.cursor = 'pointer'; // Make the mouse cursor appear as a pointer
+    }; // Change background on hover
+    pinnedDiv.onmouseout = () => { 
+        pinnedDiv.style.backgroundColor = 'transparent'; 
+        pinnedDiv.style.cursor = 'default'; // Revert the mouse cursor to default
+    }; // Revert background on mouse out
+
+
+    pinnedDiv.onclick = () => { togglePin(siteRoot, pinnedStatusDiv); }; // Toggle pin on click
     pinnedDiv.appendChild(pinnedStatusDiv);
-    pinnedDiv.appendChild(toggleButton);
 
     addDappRow([urlDiv, risksDiv, siteRootDiv, pinnedDiv]);
 

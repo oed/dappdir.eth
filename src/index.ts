@@ -1,12 +1,18 @@
 import './styles.css'
+import { createThreePiecePieChart } from './pie-chart'
+
 import { create } from 'kubo-rpc-client'
+
+
 
 const kubo = create({ url: "http://127.0.0.1:5001/api/v0" });
 
 const DEFAULT_DAPPS = [
     'dappdir.eth',
     'ipfs.eth',
-    'vitalik.eth'
+    'vitalik.eth',
+    '1inch.eth',
+    'ens.eth',
 ];
 
 const $dapps = document.querySelector('#dapps')
@@ -24,6 +30,7 @@ async function checkKuboAPIOnline() {
 }
 
 checkKuboAPIOnline();
+
 
 
 import { CID } from 'multiformats/cid';
@@ -105,15 +112,23 @@ async function addDapp(ensName: string) {
         const resolvedAddress = CID.parse(strippedName).toV1(); // Ensure the CID is version 1
         const pinnedStatus = await checkIfPinned(resolvedAddress);
 
-        const resultDiv = renderResultDiv(ensName, resolvedAddress, pinnedStatus);
-        $dapps.appendChild(resultDiv);
+        renderResultDiv(ensName, resolvedAddress, pinnedStatus);
     }
 }
 
-function renderResultDiv(ensName: string, siteRoot: CID, pinnedStatus: boolean): HTMLElement {
+function addDappRow(divs: HTMLElement[]) {
+  const table = document.querySelector("#dapps tbody");
+  const row = document.createElement("tr");
+  divs.forEach(div => {
+    const cell = document.createElement('td');
+    cell.appendChild(div);
+    row.appendChild(cell);
+  });
+  table.appendChild(row);
+}
 
-    const rowDiv = document.createElement('div');
-    rowDiv.className = 'table-row';
+function renderResultDiv(ensName: string, siteRoot: CID, pinnedStatus: boolean): void {
+
 
     const urlDiv = document.createElement('div');
     urlDiv.className = 'table__item';
@@ -122,6 +137,10 @@ function renderResultDiv(ensName: string, siteRoot: CID, pinnedStatus: boolean):
     urlLink.textContent = ensName;
     urlLink.target = '_blank';
     urlDiv.appendChild(urlLink);
+
+    const risksDiv = document.createElement('div');
+    risksDiv.className = 'table__item';
+    risksDiv.appendChild(createThreePiecePieChart());
 
     const siteRootDiv = document.createElement('div');
     siteRootDiv.className = 'table__item';
@@ -142,11 +161,8 @@ function renderResultDiv(ensName: string, siteRoot: CID, pinnedStatus: boolean):
     pinnedDiv.appendChild(pinnedStatusDiv);
     pinnedDiv.appendChild(toggleButton);
 
-    rowDiv.appendChild(urlDiv);
-    rowDiv.appendChild(siteRootDiv);
-    rowDiv.appendChild(pinnedDiv);
+    addDappRow([urlDiv, risksDiv, siteRootDiv, pinnedDiv]);
 
-    return rowDiv;
 }
 
 const submitButton = document.getElementById('submitButton');
@@ -174,3 +190,4 @@ async function resolveENSName(ensName: string): Promise<string> {
         return '';
     }
 }
+

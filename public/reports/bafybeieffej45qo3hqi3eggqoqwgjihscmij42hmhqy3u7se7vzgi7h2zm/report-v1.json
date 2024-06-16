@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "rootCID": "bafybeieffej45qo3hqi3eggqoqwgjihscmij42hmhqy3u7se7vzgi7h2zm",
+  "timestamp": 1718576902,
+  "totalSize": 1112706,
+  "distributionPurity": {
+    "externalScripts": [],
+    "externalMedia": []
+  },
+  "networkingPurity": {
+    "http": [
+      {
+        "file": "340.bbb8173230a1357e57cc.js",
+        "offenders": [
+          "http://localhost",
+          "https://${n}",
+          "https://${n}",
+          "https://${a}",
+          "http://${a}"
+        ]
+      }
+    ],
+    "websocket": [
+      {
+        "file": "340.bbb8173230a1357e57cc.js",
+        "offenders": [
+          "wss://${n}`;const",
+          "wss://${n}`},"
+        ]
+      }
+    ],
+    "webrtc": []
+  },
+  "web3": [
+    {
+      "file": "index.fd9a09eeb4b4e1f84d74.js",
+      "offenders": [
+        {
+          "service": "ipfs",
+          "url": "http://127.0.0.1:5001/api/v0",
+          "risk": "none"
+        }
+      ]
+    }
+  ],
+  "ensName": "dappdir.eth"
+}

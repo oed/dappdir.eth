@@ -20,34 +20,45 @@ async function getRootCID(ensName) {
 async function saveReport(ensName, report) {
     const fs = await import('fs');
     const path = await import('path');
+    report.ensName = ensName;
     const { rootCID } = report;
-    delete report.ensName;
-    delete report.rootCID;
-    const knownNamesFilePath = path.join(__dirname, '../known-names.json');
-    const knownNamesData = fs.readFileSync(knownNamesFilePath, 'utf8');
-    const knownNames = JSON.parse(knownNamesData);
+    const reportVersion = report.version;
+    const reportDirPath = path.join(__dirname, `../public/reports/${rootCID}`);
+    const reportFilePath = path.join(reportDirPath, `report-v${reportVersion}.json`);
+    const indexFilePath = path.join(__dirname, '../public/reports/index.json');
 
-    if (!knownNames[ensName]) {
-        throw new Error(`ENS name ${ensName} not found in known-names.json`);
+    // Ensure the directory exists
+    if (!fs.existsSync(reportDirPath)) {
+        fs.mkdirSync(reportDirPath, { recursive: true });
     }
 
-    const versions = knownNames[ensName].versions;
-    const versionIndex = versions.findIndex(version => version.cid === rootCID);
-
-    if (versionIndex === -1) {
-        throw new Error(`CID ${rootCID} not found for ${ensName} in known-names.json`);
+    // Check if the report already exists
+    if (fs.existsSync(reportFilePath)) {
+        console.error(`Error: Report for version ${reportVersion} already exists at ${reportFilePath}`);
+        return;
     }
 
-    if (!versions[versionIndex].reports) {
-        versions[versionIndex].reports = [report]
-    } else if (versions[versionIndex].reports[0].version !== ANALYSIS_VERSION) {
-        versions[versionIndex].reports.unshift(report)
+    // Write the report to the file
+    fs.writeFileSync(reportFilePath, JSON.stringify(report, null, 2));
+
+    // Update the index.json file
+    let indexData;
+    if (fs.existsSync(indexFilePath)) {
+        indexData = JSON.parse(fs.readFileSync(indexFilePath, 'utf8'));
     } else {
-        throw new Error(`Report already exists for CID ${rootCID} of ${ensName}`);
+        indexData = {};
     }
 
-    fs.writeFileSync(knownNamesFilePath, JSON.stringify(knownNames, null, 2));
+    if (!indexData[rootCID]) {
+        indexData[rootCID] = [];
+    }
+
+    indexData[rootCID].push(`report-v${reportVersion}.json`);
+    fs.writeFileSync(indexFilePath, JSON.stringify(indexData, null, 2));
 }
+
+
+
 
 async function getFilesFromCID(kubo, cid, result = [], pathCarry = '') {
     console.log(`Listing files from /${pathCarry}`)

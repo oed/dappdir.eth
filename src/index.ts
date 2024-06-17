@@ -1,7 +1,9 @@
 import './styles.css'
-import { createThreePiecePieChart } from './pie-chart'
+import { createRiskChart } from './pie-chart'
+import { getReport } from './reports'
 
 import { create } from 'kubo-rpc-client'
+import { CID } from 'multiformats/cid';
 
 
 
@@ -18,22 +20,21 @@ const DEFAULT_DAPPS = [
 const $dapps = document.querySelector('#dapps')
 const $install = document.querySelector('#install')
 
-async function checkKuboAPIOnline() {
-    try {
-        const version = await kubo.version();
-        console.log('Kubo API is online, version:', version.version);
-        loadAndDisplayDapps()
-    } catch (error) {
-        console.error('Kubo API is offline:', error);
-        ($install as HTMLElement).style.display = 'block';
-    }
-}
+// async function checkKuboAPIOnline() {
+//     try {
+//         const version = await kubo.version();
+//         console.log('Kubo API is online, version:', version.version);
+//         // loadAndDisplayDapps()
+//     } catch (error) {
+//         console.error('Kubo API is offline:', error);
+//         ($install as HTMLElement).style.display = 'block';
+//     }
+// }
 
-checkKuboAPIOnline();
+// checkKuboAPIOnline();
 
 
 
-import { CID } from 'multiformats/cid';
 
 async function checkIfPinned(ipfsAddress: CID): Promise<boolean> {
     try {
@@ -73,48 +74,66 @@ async function handleInput() {
 
     var userInputElement = document.getElementById('textInput') as HTMLInputElement;
     var ensName = userInputElement.value;
-    await addDapp(ensName);
+    // await addDapp(ensName);
     submitButton.disabled = false;
 }
-async function loadAndDisplayDapps() {
-    const storedNames = JSON.parse(localStorage.getItem('resolvedNames') || '[]');
-    for (const ensName of storedNames) {
-        await addDapp(ensName);
+// async function loadAndDisplayDapps() {
+//     const storedNames = JSON.parse(localStorage.getItem('resolvedNames') || '[]');
+//     for (const ensName of storedNames) {
+//         await addDapp(ensName);
+//     }
+// }
+
+// async function initializeDefaultNames() {
+//     let storedNames = JSON.parse(localStorage.getItem('resolvedNames') || '[]');
+
+//     for (const name of DEFAULT_DAPPS) {
+//         if (!storedNames.includes(name)) {  
+//             await addDapp(name);
+//             storedNames.push(name);
+//         }
+//     }
+//     localStorage.setItem('resolvedNames', JSON.stringify(storedNames));
+// }
+// initializeDefaultNames();
+
+async function loadCuratedNames() {
+    let storedNames = await fetch('./names.json').then(response => response.json());
+    console.log(storedNames);
+    for (const name in storedNames) {
+        console.log('name', name)
+        await addDapp(name, storedNames[name]);
     }
 }
 
-async function initializeDefaultNames() {
-    let storedNames = JSON.parse(localStorage.getItem('resolvedNames') || '[]');
+loadCuratedNames();
 
-    for (const name of DEFAULT_DAPPS) {
-        if (!storedNames.includes(name)) {  
-            await addDapp(name);
-            storedNames.push(name);
-        }
-    }
-    localStorage.setItem('resolvedNames', JSON.stringify(storedNames));
-}
-initializeDefaultNames();
+// function updateStoredNames(ensName: string) {
+//     let storedNames = JSON.parse(localStorage.getItem('resolvedNames') || '[]');
+//     if (!storedNames.includes(ensName)) {
+//         storedNames.push(ensName);
+//         localStorage.setItem('resolvedNames', JSON.stringify(storedNames));
+//     }
+// }
 
-function updateStoredNames(ensName: string) {
-    let storedNames = JSON.parse(localStorage.getItem('resolvedNames') || '[]');
-    if (!storedNames.includes(ensName)) {
-        storedNames.push(ensName);
-        localStorage.setItem('resolvedNames', JSON.stringify(storedNames));
-    }
+interface DappVersions {
+    cid: string;
+    timestamp: number;
 }
 
-async function addDapp(ensName: string) {
-    const ensResolvedName = await resolveENSName(ensName);
-    if (ensResolvedName) {
-        await updateStoredNames(ensName);
-        const strippedName = ensResolvedName.replace('/ipfs/', '');
-        const resolvedAddress = CID.parse(strippedName).toV1(); // Ensure the CID is version 1
-        const pinnedStatus = await checkIfPinned(resolvedAddress);
+async function addDapp(ensName: string, dappVersions: DappVersions[]) {
+    // const ensResolvedName = await resolveENSName(ensName);
+    // if (ensResolvedName) {
+    //     // await updateStoredNames(ensName);
+    //     const strippedName = ensResolvedName.replace('/ipfs/', '');
+    //     const resolvedAddress = CID.parse(strippedName).toV1(); // Ensure the CID is version 1
+    // }
+    const siteRoot = CID.parse(dappVersions[0].cid)
+    const pinnedStatus = await checkIfPinned(siteRoot);
 
-        renderResultDiv(ensName, resolvedAddress, pinnedStatus);
-    }
+    renderResultDiv(ensName, siteRoot, pinnedStatus);
 }
+
 
 function addDappRow(divs: HTMLElement[]) {
   const table = document.querySelector("#dapps tbody");
@@ -127,7 +146,7 @@ function addDappRow(divs: HTMLElement[]) {
   table.appendChild(row);
 }
 
-function renderResultDiv(ensName: string, siteRoot: CID, pinnedStatus: boolean): void {
+async function renderResultDiv(ensName: string, siteRoot: CID, pinnedStatus: boolean): Promise<void> {
 
 
     const urlDiv = document.createElement('div');
@@ -140,7 +159,7 @@ function renderResultDiv(ensName: string, siteRoot: CID, pinnedStatus: boolean):
 
     const risksDiv = document.createElement('div');
     risksDiv.className = 'table__item';
-    risksDiv.appendChild(createThreePiecePieChart());
+    risksDiv.appendChild(await createRiskChart(siteRoot));
 
     const siteRootDiv = document.createElement('div');
     siteRootDiv.className = 'table__item';
@@ -150,10 +169,9 @@ function renderResultDiv(ensName: string, siteRoot: CID, pinnedStatus: boolean):
     siteRootLink.target = '_blank';
     siteRootDiv.appendChild(siteRootLink);
 
-
     const pinnedStatusDiv = document.createElement('span');
     pinnedStatusDiv.textContent = pinnedStatus ? '✅' : '❌';
-    pinnedStatusDiv.style.width = '70%';
+    pinnedStatusDiv.style.width = '100%';
     pinnedStatusDiv.style.textAlign = 'center'; // Center the text content
 
     const pinnedDiv = document.createElement('div');

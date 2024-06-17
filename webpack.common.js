@@ -1,5 +1,6 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   target: 'web',
@@ -44,6 +45,11 @@ module.exports = {
       template: 'public/index.html',
       scriptLoading: 'blocking'
     }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'public', globOptions: { ignore: ['**/index.html'] } }
+      ]
+    })
   ],
   optimization: {
     splitChunks: {

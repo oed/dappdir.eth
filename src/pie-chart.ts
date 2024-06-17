@@ -1,4 +1,56 @@
-function createPieChartWithPieces(pieSize: number, pieceSizePercentage: number) {
+import { generateSummarizedReport, SummarizedReport } from "./reports";
+
+import { CID } from 'multiformats/cid';
+
+export async function createRiskChart(siteRoot: CID): Promise<HTMLDivElement> {
+    const report = await generateSummarizedReport(siteRoot);
+    const pieColors = getPieColors(report);
+    return createThreePiecePieChart(siteRoot, pieColors);
+}
+
+function getPieColors(report: SummarizedReport): string[] {
+    const COLORS = {
+        'red': '#FF6347', // Tomato
+        'green': '#3CB371', // Medium Sea Green
+        'yellow': '#FFD700', // Gold
+        'gray': '#A9A9A9' // Dark Gray
+    };
+    const colors = [];
+
+    // Color for Networking Purity
+    if (report.networkingPurity.http + report.networkingPurity.websocket + report.networkingPurity.webrtc > 0) {
+        colors.push(COLORS.red);
+    } else {
+        colors.push(COLORS.green);
+    }
+    console.log('networking', colors)
+
+    // Color for Distribution Purity
+    if (report.distributionPurity.externalScripts > 0) {
+        colors.push(COLORS.red);
+    } else if (report.distributionPurity.externalMedia > 0) {
+        colors.push(COLORS.yellow);
+    } else {
+        colors.push(COLORS.green);
+    }
+    console.log('distribution', colors)
+
+    // Color for web3
+    if (report.web3.high > 0) {
+        colors.push(COLORS.red);
+    } else if (report.web3.fair > 0) {
+        colors.push(COLORS.yellow);
+    } else if (report.web3.none > 0) {
+        colors.push(COLORS.green);
+    } else {
+        colors.push(COLORS.gray);
+    }
+    console.log('web3', colors)
+
+    return colors;
+}
+
+function createPieChartWithPieces(pieSize: number, pieceSizePercentage: number, colors: string[]) {
     const pieChart = document.createElement('div');
     pieChart.style.position = 'relative';
     pieChart.style.width = `${pieSize}em`;
@@ -8,7 +60,7 @@ function createPieChartWithPieces(pieSize: number, pieceSizePercentage: number) 
     pieChart.style.alignItems = 'center';
     pieChart.style.justifyContent = 'center';
 
-    const colors = ['#FF6347', '#3CB371', '#FFD700']; // Tomato, Medium Sea Green, Gold
+    // const colors = ['#FF6347', '#3CB371', '#FFD700']; // Tomato, Medium Sea Green, Gold
     const angles = [120, 120, 120]; // 120 degrees each for three pieces
 
     let startAngle = 0;
@@ -30,13 +82,15 @@ function createPieChartWithPieces(pieSize: number, pieceSizePercentage: number) 
     return pieChart;
 }
 
-export function createThreePiecePieChart(size: number = 2) {
+
+export function createThreePiecePieChart(siteRoot: CID, colors: string[]) {
+    const size = 2
     const pieContainer = document.createElement('div');
     pieContainer.className = 'pie-container';
     pieContainer.style.position = 'relative';
 
 
-    const pieChart = createPieChartWithPieces(size, 100); // Example usage with 80% piece size
+    const pieChart = createPieChartWithPieces(size, 100, colors); // Example usage with 80% piece size
 
     const popup = document.createElement('div');
     popup.style.position = 'absolute'
@@ -60,7 +114,7 @@ export function createThreePiecePieChart(size: number = 2) {
     popupPieContainer.style.height = '100%'
     // popupPieContainer.style.width = '20%';
 
-    const popupPieChart = createPieChartWithPieces(size*4, 80)
+    const popupPieChart = createPieChartWithPieces(size*4, 80, colors)
     popupPieChart.style.marginRight = '2em'
     popupPieContainer.appendChild(popupPieChart)
 

@@ -1,0 +1,20 @@
+{
+  "ens.eth": [
+    {
+      "cid": "bafybeievbjtmvfsqgonizviy4y3dnv3syjno22afwxvfv4dwzlqdkprne4",
+      "timestamp": 1718641979
+    }
+  ],
+  "dappdir.eth": [
+    {
+      "cid": "bafybeieffej45qo3hqi3eggqoqwgjihscmij42hmhqy3u7se7vzgi7h2zm",
+      "timestamp": 1718641979
+    }
+  ],
+  "vitalik.eth": [
+    {
+      "cid": "bafybeicijwrpp5exzlbqpyqcmkbcmnrqxdouyremgq3eod23qufugk5ina",
+      "timestamp": 1718641979
+    }
+  ]
+}

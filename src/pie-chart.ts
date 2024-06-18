@@ -60,10 +60,10 @@ function createPieChartWithPieces(pieSize: number, pieceSizePercentage: number, 
     pieChart.style.alignItems = 'center';
     pieChart.style.justifyContent = 'center';
 
-    // const colors = ['#FF6347', '#3CB371', '#FFD700']; // Tomato, Medium Sea Green, Gold
     const angles = [120, 120, 120]; // 120 degrees each for three pieces
-
     let startAngle = 0;
+    const lineWidth = pieceSizePercentage == 100 ? 1 : 2;
+    const lineColor = '#fff'; // White color for the line
 
     for (let i = 0; i < 3; i++) {
         const piece = document.createElement('div');
@@ -76,9 +76,25 @@ function createPieChartWithPieces(pieSize: number, pieceSizePercentage: number, 
         piece.style.transformOrigin = '50% 50%';
 
         pieChart.appendChild(piece);
-        startAngle += angles[i];
-    }
 
+        startAngle += angles[i];
+
+        // Add line after placing a piece, except after the last piece
+    }
+    startAngle = -30
+    for (let i = 0; i < 3; i++) {
+        const line = document.createElement('div');
+        line.style.position = 'absolute';
+        line.style.width = `${lineWidth}px`;
+        line.style.height = `50%`;
+        line.style.top = `0%`;
+        line.style.backgroundColor = lineColor;
+        line.style.transform = `rotate(${startAngle}deg)`;
+        line.style.transformOrigin = '50% 100%'; // Adjust origin to left to center the line on the edge
+        startAngle += angles[i];
+
+        pieChart.appendChild(line);
+    }
     return pieChart;
 }
 

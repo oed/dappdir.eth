@@ -1,19 +1,10 @@
 import './styles.css'
 import { createRiskChart } from './pie-chart'
-import { isOnline, isPinned, pin, unpin } from './kubo'
+import { isOnline, isPinned, pin, unpin, resolveENS } from './kubo'
 import { getFaviconUrl } from './reports'
 
 import { CID } from 'multiformats/cid';
 
-const DEFAULT_DAPPS = [
-    'dappdir.eth',
-    'ipfs.eth',
-    'vitalik.eth',
-    '1inch.eth',
-    'ens.eth',
-];
-
-const $dapps = document.querySelector('#dapps')
 const $install = document.querySelector('#install') as HTMLElement
 
 let kuboOnline = false
@@ -65,7 +56,8 @@ async function handleInput() {
     } else {
         var userInputElement = document.getElementById('textInput') as HTMLInputElement;
         var ensName = userInputElement.value;
-        // await addDapp(ensName);
+        const siteRoot = await resolveENS(ensName);
+        await addDapp(ensName, siteRoot);
     }
 
     submitButton.disabled = false;
@@ -77,25 +69,12 @@ async function handleInput() {
 //     }
 // }
 
-// async function initializeDefaultNames() {
-//     let storedNames = JSON.parse(localStorage.getItem('resolvedNames') || '[]');
-
-//     for (const name of DEFAULT_DAPPS) {
-//         if (!storedNames.includes(name)) {  
-//             await addDapp(name);
-//             storedNames.push(name);
-//         }
-//     }
-//     localStorage.setItem('resolvedNames', JSON.stringify(storedNames));
-// }
-// initializeDefaultNames();
-
 async function loadCuratedNames() {
     let storedNames = await fetch('./names.json').then(response => response.json());
-    console.log(storedNames);
     await checkKubo()
     for (const name in storedNames) {
-        await addDapp(name, storedNames[name]);
+        const siteRoot = CID.parse(storedNames[name].pop().cid);
+        await addDapp(name, siteRoot);
     }
 }
 
@@ -114,8 +93,8 @@ interface DappVersions {
     timestamp: number;
 }
 
-async function addDapp(ensName: string, dappVersions: DappVersions[]) {
-    const siteRoot = CID.parse(dappVersions[0].cid)
+async function addDapp(ensName: string, siteRoot: CID) {
+    // const siteRoot = CID.parse(dappVersions[0].cid)
     const pinnedStatus = kuboOnline ? await isPinned(siteRoot) : false;
 
     renderResultDiv(ensName, siteRoot, pinnedStatus);
@@ -174,9 +153,7 @@ async function renderResultDiv(ensName: string, siteRoot: CID, pinnedStatus: boo
     siteRootDiv.appendChild(siteRootLink);
 
     const pinnedStatusDiv = document.createElement('span');
-    console.log('pinnedStatus', pinnedStatus)
     pinnedStatusDiv.textContent = pinnedStatus ? '✅' : '❌';
-    console.log('pinnedStatusDiv', pinnedStatusDiv.textContent)
     pinnedStatusDiv.style.width = '100%';
     pinnedStatusDiv.style.textAlign = 'center'; // Center the text content
 

@@ -10,19 +10,25 @@ export async function createRiskChart(siteRoot: CID): Promise<HTMLDivElement> {
 }
 
 function renderReportText(report: SummarizedReport) {
-    let web3 = determineWeb3Status(report);
     const container = document.createElement('div');
 
-    const distributionContainer = createSectionContainer(container, 'Distribution', 'External resources on page load:');
-    addSubText(distributionContainer, 'media', report.distributionPurity.externalMedia);
-    addSubText(distributionContainer, 'scripts', report.distributionPurity.externalScripts);
+    if (report) {
+        const distributionContainer = createSectionContainer(container, 'Distribution', 'External resources on page load:');
+        addSubText(distributionContainer, 'media', report.distributionPurity.externalMedia);
+        addSubText(distributionContainer, 'scripts', report.distributionPurity.externalScripts);
 
-    const networkingContainer = createSectionContainer(container, 'Networking', 'External APIs used by the dapp:');
-    addSubText(networkingContainer, 'http', report.networkingPurity.http);
-    addSubText(networkingContainer, 'websocket', report.networkingPurity.websocket);
-    addSubText(networkingContainer, 'webrtc', report.networkingPurity.webrtc);
+        const networkingContainer = createSectionContainer(container, 'Networking', 'External APIs used by the dapp:');
+        addSubText(networkingContainer, 'http', report.networkingPurity.http);
+        addSubText(networkingContainer, 'websocket', report.networkingPurity.websocket);
+        addSubText(networkingContainer, 'webrtc', report.networkingPurity.webrtc);
 
-    const web3Container = createSectionContainer(container, 'Web3', web3);
+        let web3 = determineWeb3Status(report);
+        createSectionContainer(container, 'Web3', web3);
+    } else {
+        createSectionContainer(container, 'Distribution', 'No report available');
+        createSectionContainer(container, 'Networking', 'No report available');
+        createSectionContainer(container, 'Web3', 'No report available');
+    }
 
     return container;
 }
@@ -69,6 +75,9 @@ function getPieColors(report: SummarizedReport): string[] {
         'yellow': '#FFD700', // Gold
         'gray': '#A9A9A9' // Dark Gray
     };
+    if (!report) {
+        return [COLORS.gray, COLORS.gray, COLORS.gray]
+    }
     const colors = [];
 
     // Color for Networking Purity
@@ -77,7 +86,6 @@ function getPieColors(report: SummarizedReport): string[] {
     } else {
         colors.push(COLORS.green);
     }
-    console.log('networking', colors)
 
     // Color for Distribution Purity
     if (report.distributionPurity.externalScripts > 0) {
@@ -87,7 +95,6 @@ function getPieColors(report: SummarizedReport): string[] {
     } else {
         colors.push(COLORS.green);
     }
-    console.log('distribution', colors)
 
     // Color for web3
     if (report.web3.high > 0) {
@@ -99,7 +106,6 @@ function getPieColors(report: SummarizedReport): string[] {
     } else {
         colors.push(COLORS.gray);
     }
-    console.log('web3', colors)
 
     return colors;
 }

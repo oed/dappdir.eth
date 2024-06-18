@@ -52,7 +52,7 @@ export async function getFaviconUrl(siteRoot: CID): Promise<string> {
         reportsIndex = await fetch('./reports/index.json').then(response => response.json());
     }
     const cid = siteRoot.toString();
-    if (reportsIndex[cid].favicon) {
+    if (reportsIndex[cid]?.favicon) {
         return `./reports/${cid}/favicon.ico`;
     }
     return `./favicon.ico`;
@@ -66,7 +66,6 @@ export async function getReport(siteRoot: CID): Promise<Report> {
     if (reportsIndex[cid]) {
         const fileName = reportsIndex[cid].reports.pop();
         const report = await fetch(`./reports/${cid}/${fileName}`).then(response => response.json());
-        console.log(report)
         return report;
     }
 }
@@ -96,6 +95,9 @@ export interface SummarizedReport {
 
 export async function generateSummarizedReport(siteRoot: CID): Promise<SummarizedReport> {
     const report = await getReport(siteRoot);
+    if (!report) {
+        return null;
+    }
     return {
         distributionPurity: {
             externalScripts: report.distributionPurity.externalScripts.length,

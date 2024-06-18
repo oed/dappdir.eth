@@ -36,3 +36,15 @@ export async function pin(cid: CID) {
 export async function unpin(cid: CID) {
     await kubo.pin.rm(cid);
 }
+
+export async function resolveENS(ensName: string): Promise<CID> {
+    let ipfsUrl = '';
+    for await (const hash of kubo.name.resolve(ensName)) {
+        ipfsUrl = hash;
+    }
+    const ipfsHash = ipfsUrl.replace('/ipfs/', '');
+    // return v1 CID
+    const cid = CID.parse(ipfsHash);
+    return cid
+}
+

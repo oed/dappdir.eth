@@ -1,31 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF8">
   <title>Dapp Dir</title>
+  <link rel="icon" type="image/x-icon" href="./favicon.ico">
 </head>
 <body>
-<h1>Dapp Dir</h1>
 
-<div id="install">
-  <p>To use Dapp Dir application, you need to run IPFS Desktop locally. </p>
-  <div class="step-header"> 1. To install IPFS Desktop, please visit <a href="https://docs.ipfs.tech/install/ipfs-desktop/" target="_blank">IPFS Desktop Installation Guide</a>. </div>
-
-  <div class="step-header">2. Make sure your IPFS API configured to allow <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS" target="_blank">cross-origin (CORS) requests</a> by running the following commands:</div>
-  <div class="step">
-    <div class="code-block">
-      <div class="command-line">
-        <div class="prompt">$</div>
-        <div class="command">ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["https://dappdir.eth.limo/", "http://dappdir.eth.ipns.localhost:8080/"]'</div>
-      </div>
-      <div class="command-line">
-        <div class="prompt">$</div>
-        <div class="command">ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'</div>
-      </div>
-    </div>
+<div class="header">
+  <img class="header-img" src="images/logo.png" alt="Logo">
+  <div class="header-text">
+    Dapp Dir
   </div>
-
-  <div class="step-header"> 3. Restart IPFS </div>
 </div>
 
 <div id="inputForm">
@@ -33,20 +19,63 @@
   <button id="submitButton">Add to list</button>
 </div>
 
-<div id="dapps">
-  <table>
-    <thead>
-      <tr>
-        <th>Dapp</th>
-        <th>Risks</th>
-        <th>Site Data</th>
-        <th>Pinned Locally</th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- Dynamic content will be appended here -->
-    </tbody>
-  </table>
+<div id="dapp-wrapper">
+  <div id="dapps">
+    <table>
+      <thead>
+        <tr>
+          <th>Dapp</th>
+          <th>Risks</th>
+          <th>Site Data</th>
+          <th>Pinned Locally</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Dynamic content will be appended here -->
+      </tbody>
+    </table>
+  </div>
 </div>
+
+<div id="install">
+  <p onclick="toggleDetails()" style="cursor: pointer;"><span id="toggleIcon">▶</span> <b>To access all features of Dapp Dir, you need to run IPFS locally. Click here for instructions.</b></p>
+  <script>
+    function toggleDetails() {
+      var details = document.getElementById('detailedSteps');
+      var toggleIcon = document.getElementById('toggleIcon');
+      if (details.style.display === 'none') {
+        details.style.display = 'block';
+        toggleIcon.textContent = '▼'; // Change icon to down arrow when details are shown
+      } else {
+        details.style.display = 'none';
+        toggleIcon.textContent = '▶'; // Change icon to right arrow when details are hidden
+      }
+    }
+  </script>
+  <div id="detailedSteps" style="display:none;">
+    <div class="step-header">1. To install IPFS Desktop, please visit <a href="https://docs.ipfs.tech/install/ipfs-desktop/" target="_blank">IPFS Desktop Installation Guide</a>.</div>
+    <div class="step-header">2. Make sure your IPFS API configured to allow <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS" target="_blank">cross-origin (CORS) requests</a> by running the following commands:</div>
+    <div class="step">
+      <div class="code-block">
+        <div class="command-line">
+          <div class="prompt">$</div>
+          <div class="command">ipfs config --json API.HTTPHeaders.Access-Control-Allow-Origin '["https://dappdir.eth.limo/", "http://dappdir.eth.ipns.localhost:8080/"]'</div>
+        </div>
+        <div class="command-line">
+          <div class="prompt">$</div>
+          <div class="command">ipfs config --json API.HTTPHeaders.Access-Control-Allow-Methods '["PUT", "POST"]'</div>
+        </div>
+      </div>
+    </div>
+    <div class="step-header">3. Restart IPFS</div>
+  </div>
+</div>
+
+<div class="footer">
+  <a href="https://github.com/oed/dappdir.eth" target="_blank">
+    <img src="./images/github-mark.png" alt="GitHub repository" style="height: 2em;">
+  </a>
+</div>
+
 </body>
 </html>

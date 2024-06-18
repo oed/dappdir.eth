@@ -17,6 +17,33 @@ async function getRootCID(ensName) {
     throw new Error(`ENS name ${ensName} not found in known-names.json`);
 }
 
+async function writeFaviconFromCID(cid) {
+    console.log('Writing favicon from CID', cid);
+    const fs = await import('fs');
+    const path = await import('path');
+    const { create } = await import('kubo-rpc-client');
+    const kubo = create({ url: 'http://localhost:5001' });
+    try {
+        const faviconPath = `/ipfs/${cid}/favicon.ico`;
+        const faviconData = [];
+        for await (const chunk of kubo.cat(faviconPath)) {
+            console.log(`Received chunk of size: ${chunk.length}`);
+            faviconData.push(chunk);
+        }
+        console.log('Total chunks received:', faviconData.length);
+        const completeData = Buffer.concat(faviconData);
+        console.log('Complete data size:', completeData.length);
+        const publicPath = path.join(__dirname, '../public/reports', cid, 'favicon.ico');
+        await fs.promises.mkdir(path.dirname(publicPath), { recursive: true });
+        await fs.promises.writeFile(publicPath, completeData);
+        console.log('File written to:', publicPath);
+        return true;
+    } catch (error) {
+        console.log('No favicon written')
+        return false
+    }
+}
+
 async function saveReport(ensName, report) {
     const fs = await import('fs');
     const path = await import('path');
@@ -50,10 +77,15 @@ async function saveReport(ensName, report) {
     }
 
     if (!indexData[rootCID]) {
-        indexData[rootCID] = [];
+        indexData[rootCID] = {
+            favicon: false,
+            reports: []
+        };
     }
 
-    indexData[rootCID].push(`report-v${reportVersion}.json`);
+    indexData[rootCID].favicon = await writeFaviconFromCID(rootCID);
+
+    indexData[rootCID].reports.push(`report-v${reportVersion}.json`);
     fs.writeFileSync(indexFilePath, JSON.stringify(indexData, null, 2));
 }
 

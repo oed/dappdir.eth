@@ -1,13 +1,9 @@
 import './styles.css'
 import { createRiskChart } from './pie-chart'
-import { getReport } from './reports'
+import { isOnline, isPinned, pin, unpin } from './kubo'
+import { getFaviconUrl } from './reports'
 
-import { create } from 'kubo-rpc-client'
 import { CID } from 'multiformats/cid';
-
-
-
-const kubo = create({ url: "http://127.0.0.1:5001/api/v0" });
 
 const DEFAULT_DAPPS = [
     'dappdir.eth',
@@ -18,46 +14,35 @@ const DEFAULT_DAPPS = [
 ];
 
 const $dapps = document.querySelector('#dapps')
-const $install = document.querySelector('#install')
+const $install = document.querySelector('#install') as HTMLElement
 
-// async function checkKuboAPIOnline() {
-//     try {
-//         const version = await kubo.version();
-//         console.log('Kubo API is online, version:', version.version);
-//         // loadAndDisplayDapps()
-//     } catch (error) {
-//         console.error('Kubo API is offline:', error);
-//         ($install as HTMLElement).style.display = 'block';
-//     }
-// }
+let kuboOnline = false
+async function checkKubo() {
+    if (kuboOnline) {
+        return
+    }
+    kuboOnline = await isOnline()
+}
 
-// checkKuboAPIOnline();
-
-
-
-
-async function checkIfPinned(ipfsAddress: CID): Promise<boolean> {
-    try {
-        const pinList = await kubo.pin.ls({ type: 'recursive' });
-        for await (const pin of pinList) {
-            if (pin.cid.equals(ipfsAddress)) {
-                return true;
-            }
-        }
-        return false;
-    } catch (error) {
-        console.error('Error checking if IPFS address is pinned:', error);
-        return false;
+async function maybeDisplayInstall() {
+    await checkKubo()
+    if (!kuboOnline) {
+        $install.style.display = 'block';
     }
 }
+
+maybeDisplayInstall()
+
+
+
 async function togglePin(ipfsAddress: CID, statusElement: HTMLElement): Promise<void> {
     const isCurrentlyPinned = statusElement.textContent === '✅';
     try {
         if (isCurrentlyPinned) {
-            await kubo.pin.rm(ipfsAddress.toString());
+            await unpin(ipfsAddress);
             console.log(`Successfully unpinned address: ${ipfsAddress}`);
         } else {
-            await kubo.pin.add(ipfsAddress.toString());
+            await pin(ipfsAddress);
             console.log(`Successfully pinned address: ${ipfsAddress}`);
         }
         // Update the status element to reflect the new pinning status after toggling
@@ -72,9 +57,17 @@ async function handleInput() {
     const submitButton = document.getElementById('submitButton') as HTMLButtonElement;
     submitButton.disabled = true;
 
-    var userInputElement = document.getElementById('textInput') as HTMLInputElement;
-    var ensName = userInputElement.value;
-    // await addDapp(ensName);
+    if (!kuboOnline) {
+        const text = 'Adding local dapps requires an IPFS node. '
+            + 'If you want to suggest a dapp for the default list, please open a '
+            + '<a href="https://github.com/oed/dappdir.eth/issues/new" target="_blank">github issue</a>'
+        displayToast(text, 6000);
+    } else {
+        var userInputElement = document.getElementById('textInput') as HTMLInputElement;
+        var ensName = userInputElement.value;
+        // await addDapp(ensName);
+    }
+
     submitButton.disabled = false;
 }
 // async function loadAndDisplayDapps() {
@@ -100,8 +93,8 @@ async function handleInput() {
 async function loadCuratedNames() {
     let storedNames = await fetch('./names.json').then(response => response.json());
     console.log(storedNames);
+    await checkKubo()
     for (const name in storedNames) {
-        console.log('name', name)
         await addDapp(name, storedNames[name]);
     }
 }
@@ -122,14 +115,8 @@ interface DappVersions {
 }
 
 async function addDapp(ensName: string, dappVersions: DappVersions[]) {
-    // const ensResolvedName = await resolveENSName(ensName);
-    // if (ensResolvedName) {
-    //     // await updateStoredNames(ensName);
-    //     const strippedName = ensResolvedName.replace('/ipfs/', '');
-    //     const resolvedAddress = CID.parse(strippedName).toV1(); // Ensure the CID is version 1
-    // }
     const siteRoot = CID.parse(dappVersions[0].cid)
-    const pinnedStatus = await checkIfPinned(siteRoot);
+    const pinnedStatus = kuboOnline ? await isPinned(siteRoot) : false;
 
     renderResultDiv(ensName, siteRoot, pinnedStatus);
 }
@@ -148,13 +135,28 @@ function addDappRow(divs: HTMLElement[]) {
 
 async function renderResultDiv(ensName: string, siteRoot: CID, pinnedStatus: boolean): Promise<void> {
 
-
     const urlDiv = document.createElement('div');
     urlDiv.className = 'table__item';
     const urlLink = document.createElement('a');
-    urlLink.href = `http://${ensName}.ipns.localhost:8080`;
-    urlLink.textContent = ensName;
+    if (kuboOnline) {
+        urlLink.href = `http://${ensName}.ipns.localhost:8080`;
+    } else {
+        urlLink.href = `https://${ensName}.limo`;
+    }
     urlLink.target = '_blank';
+
+    const urlIcon = document.createElement('img');
+    urlIcon.src = await getFaviconUrl(siteRoot);
+    urlIcon.alt = 'dapp-logo';
+    urlIcon.width = 16;
+    urlIcon.height = 16;
+    urlIcon.style.marginRight = '0.3em';
+    urlLink.appendChild(urlIcon);
+
+    const urlText = document.createElement('span');
+    urlText.textContent = ensName;
+    urlLink.appendChild(urlText);
+
     urlDiv.appendChild(urlLink);
 
     const risksDiv = document.createElement('div');
@@ -164,13 +166,17 @@ async function renderResultDiv(ensName: string, siteRoot: CID, pinnedStatus: boo
     const siteRootDiv = document.createElement('div');
     siteRootDiv.className = 'table__item';
     const siteRootLink = document.createElement('a');
-    siteRootLink.href = `http://bafybeigggyffcf6yfhx5irtwzx3cgnk6n3dwylkvcpckzhqqrigsxowjwe.ipfs.localhost:8080/#/ipfs/${siteRoot}`;
+    if (kuboOnline) {
+        siteRootLink.href = `http://bafybeigggyffcf6yfhx5irtwzx3cgnk6n3dwylkvcpckzhqqrigsxowjwe.ipfs.localhost:8080/#/ipfs/${siteRoot}`;
+    }
     siteRootLink.textContent = siteRoot.toString();
     siteRootLink.target = '_blank';
     siteRootDiv.appendChild(siteRootLink);
 
     const pinnedStatusDiv = document.createElement('span');
+    console.log('pinnedStatus', pinnedStatus)
     pinnedStatusDiv.textContent = pinnedStatus ? '✅' : '❌';
+    console.log('pinnedStatusDiv', pinnedStatusDiv.textContent)
     pinnedStatusDiv.style.width = '100%';
     pinnedStatusDiv.style.textAlign = 'center'; // Center the text content
 
@@ -187,36 +193,26 @@ async function renderResultDiv(ensName: string, siteRoot: CID, pinnedStatus: boo
     }; // Revert background on mouse out
 
 
-    pinnedDiv.onclick = () => { togglePin(siteRoot, pinnedStatusDiv); }; // Toggle pin on click
+    if (kuboOnline) {
+        pinnedDiv.onclick = () => { togglePin(siteRoot, pinnedStatusDiv); }; // Toggle pin on click
+    } else {
+        pinnedDiv.onclick = () => {
+            displayToast('Pinning requires local IPFS node', 3000);
+        };
+    }
     pinnedDiv.appendChild(pinnedStatusDiv);
 
     addDappRow([urlDiv, risksDiv, siteRootDiv, pinnedDiv]);
 
 }
 
-const submitButton = document.getElementById('submitButton');
-submitButton.addEventListener('click', handleInput);
-
-async function resolveENSName(ensName: string): Promise<string> {
-    try {
-        for await (const name of kubo.name.resolve(ensName)) {
-            return name
-        }
-        return ''
-    } catch (error) {
-        console.error('Error resolving ENS name:', error);
-        const toast = document.createElement('div');
-        toast.className = 'toast'; // Apply the CSS class
-        toast.id = 'toast';
-        toast.textContent = `Failed to resolve ENS name: ${ensName}`;
-        document.body.appendChild(toast);
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => {
-                document.body.removeChild(toast);
-            }, 500); // Wait for fade out to finish
-        }, 2000);
-        return '';
-    }
+async function displayToast(message: string, duration: number) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = message;
+    document.body.appendChild(toast);
+    setTimeout(() => document.body.removeChild(toast), duration);
 }
 
+const submitButton = document.getElementById('submitButton');
+submitButton.addEventListener('click', handleInput);

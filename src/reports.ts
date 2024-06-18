@@ -1,8 +1,12 @@
 import { CID } from 'multiformats/cid';
 
 interface ReportsIndex {
-    [key: string]: string[];
+    [key: string]: {
+        favicon: boolean;
+        reports: string[];
+    };
 }
+
 let reportsIndex: ReportsIndex;
 
 interface Offender {
@@ -43,13 +47,24 @@ export interface Report {
     ensName: string;
 }
 
+export async function getFaviconUrl(siteRoot: CID): Promise<string> {
+    if (!reportsIndex) {
+        reportsIndex = await fetch('./reports/index.json').then(response => response.json());
+    }
+    const cid = siteRoot.toString();
+    if (reportsIndex[cid].favicon) {
+        return `./reports/${cid}/favicon.ico`;
+    }
+    return `./favicon.ico`;
+}
+
 export async function getReport(siteRoot: CID): Promise<Report> {
     if (!reportsIndex) {
         reportsIndex = await fetch('./reports/index.json').then(response => response.json());
     }
     const cid = siteRoot.toString();
     if (reportsIndex[cid]) {
-        const fileName = reportsIndex[cid].pop();
+        const fileName = reportsIndex[cid].reports.pop();
         const report = await fetch(`./reports/${cid}/${fileName}`).then(response => response.json());
         console.log(report)
         return report;

@@ -47,31 +47,6 @@ async function resolveCIDsForNames(kubo, names) {
     return resolvedCIDs;
 }
 
-async function writeFaviconFromCID(kubo, cid) {
-    console.log('writing favicon from CID', cid);
-    const fs = await import('fs');
-    const path = await import('path');
-    try {
-        const faviconPath = `/ipfs/${cid}/favicon.ico`;
-        const faviconData = [];
-        for await (const chunk of kubo.cat(faviconPath)) {
-            console.log(`Received chunk of size: ${chunk.length}`);
-            faviconData.push(chunk);
-        }
-        console.log('Total chunks received:', faviconData.length);
-        const completeData = Buffer.concat(faviconData);
-        console.log('Complete data size:', completeData.length);
-        const publicPath = path.join(__dirname, '../public/reports', cid, 'favicon.ico');
-        await fs.promises.mkdir(path.dirname(publicPath), { recursive: true });
-        await fs.promises.writeFile(publicPath, completeData);
-        console.log('File written to:', publicPath);
-        return publicPath;
-    } catch (error) {
-        // console.error(`Error loading favicon from CID ${cid}:`, error);
-        return '';
-    }
-}
-
 
 async function writeNamesToPublic(namesData) {
     const timestamp = Math.floor(Date.now() / 1000);

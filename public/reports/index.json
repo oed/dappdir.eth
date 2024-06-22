@@ -16,5 +16,17 @@
     "reports": [
       "report-v1.json"
     ]
+  },
+  "bafybeif2pqo6sufuvszfytofsnm2ob4ww55oni4n44iqsvh6wljiuxw5ki": {
+    "favicon": false,
+    "reports": [
+      "report-v1.json"
+    ]
+  },
+  "bafybeiamycew6nenpodnk4spapgy7epr5ykexcxp4x66kcgeu5sxuu5t7y": {
+    "favicon": true,
+    "reports": [
+      "report-v1.json"
+    ]
   }
 }

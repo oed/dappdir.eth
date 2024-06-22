@@ -73,7 +73,7 @@ async function loadCuratedNames() {
     let storedNames = await fetch('./names.json').then(response => response.json());
     await checkKubo()
     for (const name in storedNames) {
-        const siteRoot = CID.parse(storedNames[name].pop().cid);
+        const siteRoot = CID.parse(storedNames[name][0].cid);
         await addDapp(name, siteRoot);
     }
 }

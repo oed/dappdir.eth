@@ -4,25 +4,44 @@ const WEB3_APIs = [
     { url: 'http://localhost:8545', service: 'ethereum', risk: 'none' },
     { url: 'http://127.0.0.1:8545', service: 'ethereum', risk: 'none' },
 ]
+const LINK_NON_FETCHING_REL_VALUES = [
+    'alternate',
+    'author',
+    'help',
+    'license',
+    'next',
+    'prev',
+    'nofollow',
+    'noopener',
+    'noreferrer',
+    'bookmark',
+    'tag',
+    'external',
+    'no-follow',
+    'canonical'
+];
 const ANALYSIS_VERSION = 1
 
-async function getRootCID(ensName) {
-    const fs = await import('fs');
-    const path = await import('path');
-    const knownNamesFilePath = path.join(__dirname, '../known-names.json');
-    const knownNames = JSON.parse(fs.readFileSync(knownNamesFilePath, 'utf8'));
-    if (knownNames[ensName] && knownNames[ensName].versions && knownNames[ensName].versions.length > 0) {
-        return knownNames[ensName].versions[0].cid;
+async function resolveENSName(kubo, ensName) {
+  const { base32 } = await import("multiformats/bases/base32");
+  const { CID } = await import("multiformats/cid");
+    try {
+        for await (const name of kubo.name.resolve(ensName)) {
+            const cleanedName = name.replace(/^\/ipfs\//, ''); // Remove /ipfs/ from the beginning before parsing CID
+            const cidV1 = CID.parse(cleanedName).toV1().toString(base32); // Ensure CIDv1 is returned
+            return cidV1;
+        }
+        return '';
+    } catch (error) {
+        console.log(`Error resolving ENS name ${ensName}: ${error}`);
+        return '';
     }
-    throw new Error(`ENS name ${ensName} not found in known-names.json`);
 }
 
-async function writeFaviconFromCID(cid) {
+async function writeFaviconFromCID(kubo, cid) {
     console.log('Writing favicon from CID', cid);
     const fs = await import('fs');
     const path = await import('path');
-    const { create } = await import('kubo-rpc-client');
-    const kubo = create({ url: 'http://localhost:5001' });
     try {
         const faviconPath = `/ipfs/${cid}/favicon.ico`;
         const faviconData = [];
@@ -44,7 +63,7 @@ async function writeFaviconFromCID(cid) {
     }
 }
 
-async function saveReport(ensName, report) {
+async function saveReport(kubo, ensName, report) {
     const fs = await import('fs');
     const path = await import('path');
     report.ensName = ensName;
@@ -53,6 +72,7 @@ async function saveReport(ensName, report) {
     const reportDirPath = path.join(__dirname, `../public/reports/${rootCID}`);
     const reportFilePath = path.join(reportDirPath, `report-v${reportVersion}.json`);
     const indexFilePath = path.join(__dirname, '../public/reports/index.json');
+    const namesFilePath = path.join(__dirname, '../public/names.json');
 
     // Ensure the directory exists
     if (!fs.existsSync(reportDirPath)) {
@@ -83,10 +103,28 @@ async function saveReport(ensName, report) {
         };
     }
 
-    indexData[rootCID].favicon = await writeFaviconFromCID(rootCID);
+    indexData[rootCID].favicon = await writeFaviconFromCID(kubo, rootCID);
 
     indexData[rootCID].reports.push(`report-v${reportVersion}.json`);
     fs.writeFileSync(indexFilePath, JSON.stringify(indexData, null, 2));
+
+    // Update the names.json file
+    let namesData;
+    if (fs.existsSync(namesFilePath)) {
+        namesData = JSON.parse(fs.readFileSync(namesFilePath, 'utf8'));
+    } else {
+        namesData = {};
+    }
+
+    if (!namesData[ensName]) {
+        namesData[ensName] = [];
+    }
+
+    const nameEntry = { cid: rootCID, timestamp: Math.floor(Date.now() / 1000) };
+    if (namesData[ensName].length === 0 || namesData[ensName][0].cid !== rootCID) {
+        namesData[ensName].unshift(nameEntry);
+    }
+    fs.writeFileSync(namesFilePath, JSON.stringify(namesData, null, 2));
 }
 
 
@@ -100,6 +138,9 @@ async function getFilesFromCID(kubo, cid, result = [], pathCarry = '') {
             await getFilesFromCID(kubo, item.cid, result, currentPath);
         } else if (item.type === 'file' && item.size !== undefined) {
             result.push({ ...item, path: currentPath });
+        } else if (item.type === 'file' && pathCarry === '') {
+            // This is likely an html file as the root CID
+            result.push({ ...item, path: 'index.html' });
         }
     }
     return result;
@@ -125,7 +166,7 @@ async function analyzeFile(kubo, cid, filePath) {
         const scriptTagRegex = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
         let match;
         while ((match = scriptTagRegex.exec(fileContent)) !== null) {
-            // scriptContent.push(match[1]);
+            scriptContent.push(match[1]);
         }
     }
 
@@ -194,8 +235,16 @@ function analyzeDistributionPurity(fileContent) {
     const tagRegex = /<(img|video|iframe|audio|source|object|embed|track|link|script)\s+[^>]*?\b(src|href)=["']([^"']*)["'][^>]*>/gi;
     let match;
     while ((match = tagRegex.exec(fileContent)) !== null) {
-        let [_, type, attr, url] = match;
+        let [fullMatch, type, attr, url] = match;
         if (url.startsWith('http')) {
+            if (type === 'link') {
+                const relRegex = /\brel=["']([^"']*)["']/i;
+                const match = relRegex.exec(fullMatch);
+                const rel = match ? match[1] : null
+                if (rel && LINK_NON_FETCHING_REL_VALUES.includes(rel.toLowerCase())) {
+                    continue
+                }
+            }
             if (type === 'iframe' || type === 'script' || attr === 'href') {
                 analysis.externalScripts.push({ type, url });
             } else {
@@ -206,9 +255,7 @@ function analyzeDistributionPurity(fileContent) {
     return analysis;
 }
 
-async function generateReport(rootCID) {
-    const { create } = await import('kubo-rpc-client');
-    const kubo = create({ url: 'http://localhost:5001' });
+async function generateReport(kubo, rootCID) {
     try {
         const files = await getFilesFromCID(kubo, rootCID);
 
@@ -258,6 +305,9 @@ async function generateReport(rootCID) {
 
 
 async function main() {
+    const { create } = await import('kubo-rpc-client');
+    const kubo = create({ url: 'http://localhost:5001' });
+
     const input = process.argv[2];
     if (!input) {
         console.error('Please provide an ENS name or CID as a parameter.');
@@ -267,17 +317,17 @@ async function main() {
     let ensName = input.endsWith('.eth') ? input : undefined;
     if (ensName) {
         console.log(`Analyzing ${ensName}`);
-        rootCID = await getRootCID(ensName);
+        rootCID = await resolveENSName(kubo, ensName);
     } else {
         rootCID = input;
     }
 
     console.log(`Analyzing ${rootCID}`);
-    const report = await generateReport(rootCID);
+    const report = await generateReport(kubo, rootCID);
 
     if (ensName && process.argv.includes('--save')) {
         console.log(`Saving report for ${ensName}`);
-        await saveReport(ensName, report);
+        await saveReport(kubo, ensName, report);
     } else {
         console.log('Report:')
         console.log(JSON.stringify(report, null, 2));

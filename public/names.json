@@ -28,5 +28,17 @@
       "cid": "bafybeiamycew6nenpodnk4spapgy7epr5ykexcxp4x66kcgeu5sxuu5t7y",
       "timestamp": 1719061814
     }
+  ],
+  "acypherpunksmanifesto.eth": [
+    {
+      "cid": "bafybeibzfo54uh6df4sofqwh7z7sfzsty7fa5qpxvnojlg34rlpkelcbni",
+      "timestamp": 1719093655
+    }
+  ],
+  "thebluepill.eth": [
+    {
+      "cid": "bafybeigiitvokayvdyyrufjomhlzvd66qyir3jcstm7idatplcd4a5be7u",
+      "timestamp": 1719149295
+    }
   ]
 }

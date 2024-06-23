@@ -14,12 +14,23 @@
   </div>
 </div>
 
+<div class="navigation-tabs">
+  <ul>
+    <li><a href="/">Home</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#best-practices">Best Practices</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+</div>
+
+
+
 <div id="inputForm">
   <input type="text" id="textInput" placeholder="Enter .eth domain" onkeypress="if(event.key === 'Enter') document.getElementById('submitButton').click()">
   <button id="submitButton">Add to list</button>
 </div>
 
-<div id="dapp-wrapper">
+<div id="content-wrapper">
   <div id="dapps">
     <table>
       <thead>
@@ -34,6 +45,9 @@
         <!-- Dynamic content will be appended here -->
       </tbody>
     </table>
+  </div>
+
+  <div id="main-content">
   </div>
 </div>
 

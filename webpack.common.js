@@ -1,6 +1,8 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const RemarkHTML = import('remark-html');
+
 
 module.exports = {
   target: 'web',
@@ -35,6 +37,13 @@ module.exports = {
         test: /\.(woff|woff2|eot|ttf|otf)$/i,
         type: 'asset/resource',
       },
+      {
+        test: /\.md$/,
+        use: [
+          'html-loader',
+          'markdown-loader',
+        ]
+      },
     ],
   },
   resolve: {
@@ -47,7 +56,7 @@ module.exports = {
     }),
     new CopyWebpackPlugin({
       patterns: [
-        { from: 'public', globOptions: { ignore: ['**/index.html'] } }
+        { from: 'public', globOptions: { ignore: ['**/*.html'] } }
       ]
     })
   ],

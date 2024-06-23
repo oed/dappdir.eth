@@ -32,6 +32,44 @@ h1 {
     font-weight: bold;
 }
 
+.navigation-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.navigation-tabs ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+}
+
+.navigation-tabs li a {
+    padding: 10px 20px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-bottom: none;
+    color: #4a90e2; /* Correct color applied */
+    text-decoration: none; /* No underline */
+    display: block; /* Ensures padding and other styles are applied correctly */
+    font-size: 1.1em; /* Slightly larger font size */
+    font-weight: bold; /* Make text bold */
+}
+
+.navigation-tabs li a:hover,
+.navigation-tabs li a:focus {
+    background-color: #f0f0f0;
+    text-decoration: none; /* Ensure no underline on hover/focus */
+    border-radius: 8px; /* Soft corners */
+}
+
+.navigation-tabs li.active a {
+    background-color: #fff;
+    border-color: #ccc;
+    text-decoration: none; /* Ensure no underline on active */
+}
+
 #inputForm {
   text-align: center;
   width: 80%;
@@ -68,7 +106,7 @@ h1 {
     background-color: #357ab8;
 }
 
-#dapp-wrapper {
+#content-wrapper {
     width: 100%;
     display: flex;
     justify-content: center;
@@ -82,6 +120,18 @@ h1 {
     /* margin: 0 auto; */
     background-color: #ffffff;
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    margin-bottom: 2em;
+}
+
+#main-content {
+    border-radius: 8px;
+    display: none;
+    width: 50%;
+    padding: 4em;
+    background-color: #ffffff;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    margin: 0 auto; /* Center the div */
+    margin-bottom: 2em;
 }
 
 #dapps table {
@@ -124,21 +174,14 @@ h1 {
     margin: 20px;
 }
 
-.code-block {
+code {
     background-color: #f5f5f5;
     border: 1px solid #ddd;
-    padding: 10px;
-    margin-top: 10px;
-    margin-left: 30px;
-    margin-right: 30px;
-    font-family: monospace;
-}
-
-.command-line {
-    display: flex;
-    align-items: center;
-    padding-top: 5px;
-    padding-bottom: 5px;
+    font-family: monospace; /* Updated font for better readability */
+    line-height: 1.5; /* Increased line height for better readability */
+    overflow-x: auto; /* Adds horizontal scrolling if the content is too wide */
+    white-space: pre-wrap; /* Ensures that data is on the next line if too long */
+    word-wrap: break-word; /* Breaks the word to prevent overflow */
 }
 
 .prompt {

@@ -3,6 +3,13 @@ import { createRiskChart } from './pie-chart'
 import { isOnline, isPinned, pin, unpin, resolveENS } from './kubo'
 import { getFaviconUrl } from './reports'
 
+// @ts-ignore
+import about from './pages/about.md'
+// @ts-ignore
+import faq from './pages/faq.md'
+// @ts-ignore
+import bestPractices from './pages/best-practices.md'
+
 import { CID } from 'multiformats/cid';
 
 const $install = document.querySelector('#install') as HTMLElement
@@ -23,6 +30,33 @@ async function maybeDisplayInstall() {
 }
 
 maybeDisplayInstall()
+
+
+// hash router
+window.addEventListener('hashchange', handleHashChange);
+handleHashChange(); // Call on initial load in case there's already a hash in the URL
+
+function handleHashChange() {
+    const hash = window.location.hash;
+    const dappsTable = document.getElementById('dapps') as HTMLElement;
+    const mainContent = document.getElementById('main-content') as HTMLElement;
+
+    function displayContent(content: string) {
+        dappsTable.style.display = 'none';
+        mainContent.style.display = 'block';
+        mainContent.innerHTML = content;
+    }
+    if (!hash || hash === '#') {
+        dappsTable.style.display = 'block';
+        mainContent.style.display = 'none';
+    } else if (hash === '#about') {
+        displayContent(about);
+    } else if (hash === '#faq') {
+        displayContent(faq);
+    } else if (hash === '#best-practices') {
+        displayContent(bestPractices);
+    }
+}
 
 
 

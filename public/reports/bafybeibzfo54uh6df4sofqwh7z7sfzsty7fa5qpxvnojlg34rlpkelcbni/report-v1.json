@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "rootCID": "bafybeibzfo54uh6df4sofqwh7z7sfzsty7fa5qpxvnojlg34rlpkelcbni",
+  "timestamp": 1719093655,
+  "totalSize": 456663,
+  "distributionPurity": {
+    "externalScripts": [],
+    "externalMedia": []
+  },
+  "networkingPurity": {
+    "http": [],
+    "websocket": [],
+    "webrtc": []
+  },
+  "web3": [],
+  "ensName": "acypherpunksmanifesto.eth"
+}

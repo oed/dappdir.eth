@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "rootCID": "bafybeigiitvokayvdyyrufjomhlzvd66qyir3jcstm7idatplcd4a5be7u",
+  "timestamp": 1719149295,
+  "totalSize": 50149429,
+  "distributionPurity": {
+    "externalScripts": [],
+    "externalMedia": []
+  },
+  "networkingPurity": {
+    "http": [],
+    "websocket": [],
+    "webrtc": []
+  },
+  "web3": [],
+  "ensName": "thebluepill.eth"
+}
